@@ -39,3 +39,22 @@
 
 - include: fedora-dnf.yml
   when: os_version.stdout|int >= 22 and 'Fedora' in distro.stdout and is_atomic is not defined
+
+- name: Gather cluster networking facts for /etc/hosts
+  setup:
+  register: networking_facts
+  tags:
+    - "/etc/hosts"
+
+- name: Insert/update /etc/hosts using ansible cluster facts
+  blockinfile:
+    dest: /etc/hosts
+    block: |
+      {% for host in groups['all'] %}
+        {{- hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    create: no
+  when: networking_facts
+  tags:
+    - "/etc/hosts"
