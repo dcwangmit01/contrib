@@ -4,7 +4,7 @@
 #
 # localBuild - requires make release to have been run to build local binaries
 # packageManager - will install packages from your distribution using yum/dnf/apt
-source_type: packageManager
+source_type: localBuild
 
 # will be used as the Internal dns domain name if DNS is enabled. Services
 # will be discoverable under <service-name>.<namespace>.svc.<domainname>, e.g.
@@ -38,7 +38,9 @@ insecure_registrys:
 #no_proxy: "127.0.0.1,localhost,docker-registry.somecorporation.com"
 
 # The port that the Kubernetes apiserver component listens on.
-kube_master_api_port: 443
+# Systemd config runs kube-apiserver as "kube" user, not root, so port
+#   binding fails unless > 1024
+kube_master_api_port: 8443
 
 # Kubernetes internal network for services.
 # Kubernetes services will get fake IP addresses from this range.
@@ -102,3 +104,11 @@ dns_replicas: 1
 
 # See kube documentation for apiserver runtime config options.  Example below enables HPA, deployments features.
 # apiserver_extra_args: "--runtime-config=extensions/v1beta1/deployments=true"
+
+#####################################################################
+# Custom Config
+ansible_ssh_user: root
+
+# Assumes you have cloned "kubernetes" and "contrib" at the same level
+# Also, kubernetes needs to have run "git checkout v1.3.3; make release"
+localBuildOutput: ../../kubernetes/_output/dockerized/bin/linux/amd64
